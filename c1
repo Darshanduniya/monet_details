@@ -1,0 +1,45 @@
+import pymonetdb
+import json
+from datetime import datetime
+
+# Connection parameters
+host = "lnx1576.ch3.prod.i.com"
+database = "DB_HLX_TEC_CET_PA"
+user = "USR_HLX_MRT"
+password = "your_password"
+port = 50008
+
+# Establish connection
+conn = pymonetdb.connect(username=user, password=password, hostname=host, database=database, port=port)
+cursor = conn.cursor()
+
+# Query to get table count
+cursor.execute("SELECT COUNT(*) FROM sys.tables WHERE system=false;")
+table_count = cursor.fetchone()[0]
+
+# Query to get column count per table
+cursor.execute("""
+    SELECT t.name AS table_name, COUNT(c.name) AS column_count
+    FROM sys.tables t
+    JOIN sys.columns c ON t.id = c.table_id
+    WHERE t.system = false
+    GROUP BY t.name;
+""")
+columns_data = cursor.fetchall()
+
+# Close connection
+cursor.close()
+conn.close()
+
+# Formatting output
+output = {
+    "table_count": table_count,
+    "table_columns": {table: count for table, count in columns_data},
+    "start_date_time": datetime.now().isoformat(),
+    "modified_time": datetime.now().isoformat(),
+    "monet_code": ""
+}
+
+# Convert to JSON
+output_json = json.dumps(output, indent=4)
+print(output_json)
