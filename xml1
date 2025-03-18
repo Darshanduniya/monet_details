@@ -31,3 +31,12 @@ xml_path = '/data/duni/emp.xml'
 
 # Convert CSV to XML
 csv_to_xml(csv_path, xml_path)
+
+
+
+===
+
+id,name,age,city
+1,John,25,New York
+2,Emma,30,Los Angeles
+3,Liam,35,Chicago
