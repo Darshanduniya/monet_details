@@ -1,0 +1,33 @@
+import pandas as pd
+import xml.etree.ElementTree as ET
+
+def csv_to_xml(csv_file, xml_file):
+    try:
+        # Read CSV file
+        df = pd.read_csv(csv_file)
+        print(f"Successfully read CSV from: {csv_file}")
+
+        # Create the root element
+        root = ET.Element("root")
+
+        # Iterate over rows and create XML elements
+        for _, row in df.iterrows():
+            record = ET.SubElement(root, "record")
+            for col in df.columns:
+                child = ET.SubElement(record, col)
+                child.text = str(row[col])
+
+        # Convert to XML tree
+        tree = ET.ElementTree(root)
+        tree.write(xml_file, encoding="utf-8", xml_declaration=True)
+        print(f"XML successfully saved to: {xml_file}")
+    
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# File paths
+csv_path = '/data/duni/emp.csv'
+xml_path = '/data/duni/emp.xml'
+
+# Convert CSV to XML
+csv_to_xml(csv_path, xml_path)
