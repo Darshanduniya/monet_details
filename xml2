@@ -1,0 +1,57 @@
+import xml.etree.ElementTree as ET
+import csv
+import os
+
+# File paths
+input_file = "/data/duni/emp.xml"  # Input XML path
+output_file = "/data/duni/emp.csv"  # Output CSV path
+
+# Parse XML
+tree = ET.parse(input_file)
+root = tree.getroot()
+
+# Collect all fields dynamically
+all_fields = set()
+
+def extract_fields(element, prefix=""):
+    """Recursively extract field names and update the all_fields set."""
+    for child in element:
+        field_name = f"{prefix}{child.tag}"
+        if child.attrib:
+            for attr_name in child.attrib:
+                all_fields.add(f"{field_name}_{attr_name}")
+        if child.text and child.text.strip():
+            all_fields.add(field_name)
+        extract_fields(child, f"{field_name}_")
+
+extract_fields(root)
+all_fields = sorted(all_fields)
+
+# Extract data and build rows
+csv_data = []
+
+def extract_data(element, prefix="", row_data=None):
+    """Recursively extract data and populate row_data."""
+    if row_data is None:
+        row_data = {}
+    for child in element:
+        field_name = f"{prefix}{child.tag}"
+        if child.attrib:
+            for attr_name, attr_value in child.attrib.items():
+                row_data[f"{field_name}_{attr_name}"] = attr_value
+        if child.text and child.text.strip():
+            row_data[field_name] = child.text.strip()
+        extract_data(child, f"{field_name}_", row_data)
+    if not list(element):
+        csv_data.append(row_data)
+
+extract_data(root)
+
+# Write data to CSV
+with open(output_file, mode="w", newline="", encoding="utf-8") as file:
+    writer = csv.DictWriter(file, fieldnames=all_fields)
+    writer.writeheader()
+    for row in csv_data:
+        writer.writerow(row)
+
+print(f"✅ CSV file generated successfully at '{output_file}'!")
